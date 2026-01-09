@@ -71,10 +71,31 @@ public class UrlToPdfConverter {
         // 주의: --print-to-pdf 옵션은 절대경로를 사용하는 것이 안전합니다.
         List<String> command = new ArrayList<>();
         command.add(browserPath);
-        command.add("--headless"); // GUI 없이 실행
-        command.add("--disable-gpu"); // GPU 가속 비활성화 (헤드리스 모드 안정성)
-        command.add("--run-all-compositor-stages-before-draw"); // 레이아웃 렌더링 완료 대기 (중요)
-        command.add("--no-pdf-header-footer"); // 머리글/바닥글 제거 (선택사항)
+        // [수정] --headless=new 모드 사용 (최신 크롬/엣지 렌더링 엔진 사용으로 더 정확한 출력)
+        command.add("--headless=new");
+        command.add("--disable-gpu");
+
+        // [가로 모드 효과 구현]
+        // CLI에서는 PDF 용지 방향을 가로(Landscape)로 바꾸는 옵션이 제한적입니다.
+        // 대신, "노트북 해상도(1280px)"를 "A4용지 폭"에 딱 맞게 축소(0.6배)하여
+        // 가로가 꽉 차게 나오도록 조정했습니다. (1280px * 0.6 = 768px ≒ A4폭)
+
+        // 1. 데스크탑 User-Agent 복구
+        command.add(
+                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
+        // [중요] 컨텐츠 로딩 대기
+        command.add("--virtual-time-budget=10000");
+
+        // 2. 뷰포트 너비 1280px (너무 넓은 1920px 대신 적절한 너비 사용)
+        command.add("--window-size=1280,15000");
+
+        // 3. 배율 0.6 (1280px를 A4에 맞춤)
+        command.add("--force-device-scale-factor=0.6");
+
+        command.add("--hide-scrollbars");
+        command.add("--run-all-compositor-stages-before-draw");
+        command.add("--no-pdf-header-footer");
         command.add("--print-to-pdf=" + outputFile.getAbsolutePath());
         command.add(url);
 
