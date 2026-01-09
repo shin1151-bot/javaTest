@@ -1,0 +1,12 @@
+# Ignore compiled artifacts
+target/
+*.class
+*.jar
+
+# Ignore generated PDFs
+*.pdf
+
+# Ignore IDE settings
+.idea/
+.vscode/
+*.iml
